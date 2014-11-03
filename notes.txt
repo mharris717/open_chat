@@ -1,0 +1,4 @@
+Use jquery plugin or just raw jquery: probably prefer jquery chatbox plugin
+chat structure: could have chat messages just have an author, and filter who's messages show up in the chat. more bookkeeping if you track more stuff
+do endpoints?
+websockets or polling?
