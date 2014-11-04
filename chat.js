@@ -1,4 +1,5 @@
 var pageName = "index.php";
+var messageIds = {};
 
 var Chat = {
   sendMessage: function(sender,receiver,msg) {
@@ -26,16 +27,22 @@ var Chat = {
   startMessagePolling: function(sender,receiver) {
     var pollOnce = function() {
       Chat.getMessages(sender,receiver,function(message) {
-        Chat.addMessageToPage(sender,receiver,message.message);
+        Chat.addMessageToPage(message.id,sender,receiver,message.msg);
       })
     };
 
     pollOnce();
-    setInterval(pollOnce,60000);
+    setInterval(pollOnce,2000);
   },
 
-  addMessageToPage: function(sender,receiver,msg) {
-    $("#chat").chatbox("option", "boxManager").addMsg("Mr. Foo", msg);
+  addMessageToPage: function(msgId,sender,receiver,msg) {
+    if (!messageIds[msgId]) {
+      $("#chat").chatbox("option", "boxManager").addMsg("John", msg);
+      messageIds[msgId] = true;
+    }
+    else {
+      console.debug("dup message");
+    }
   }
 };
 
@@ -46,10 +53,10 @@ function setupChat() {
                       offset: 200,
                       messageSent: function(id, user, msg){
                            console.logoo("DOM " + id + " just typed in " + msg);
-                           Chat.sendMessage("me","them",msg)
+                           Chat.sendMessage(1,2,msg)
                       }});
 
-  Chat.startMessagePolling("me","them");
+  Chat.startMessagePolling(1,2);
 }
 
 $(function() {
