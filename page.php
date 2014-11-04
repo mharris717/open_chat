@@ -11,7 +11,7 @@
     <script type="text/javascript">
       JSHERE
     </script>
-    
+
   </head>
 
   <body>
@@ -19,7 +19,7 @@
 
     <div id="debug"></div>
 
-    <div id="chat"></div>
+    <div id="chat" data-p1id="1" data-p2id="2" data-myid="1"></div>
   </body>
 </html>
 

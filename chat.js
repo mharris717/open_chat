@@ -1,24 +1,34 @@
 var pageName = "index.php";
 var messageIds = {};
 
+// var myId = 1;
+// var oppId = 2;
+
+var myId = null;
+var oppId = null;
+
+function loadIds() {
+  var chatDiv = $('#chat');
+  myId = chatDiv.data('p1id');
+  oppId = chatDiv.data('p2id');
+}
+
 var Chat = {
   sendMessage: function(sender,receiver,msg) {
     console.log("sending message "+msg);
-    $.post(pageName, {sender: sender, receiver: receiver, message: msg, action: "sendMessage"}, function(data) {
+    $.post(pageName, {p1id: myId, p2id: oppId, sendid: myId, msg: msg, action: "sendMessage"}, function(data) {
       console.log("chat post success");
     });
   },
 
   getMessages: function(sender,receiver,cb) {
-    $.get(pageName, {sender: sender, receiver: receiver, action: "getMessages"}, function(data) {
+    $.get(pageName, {p1id: myId, p2id: oppId, action: "getMessages"}, function(data) {
       data = JSON.parse(data);
       console.log("getMessages success " + data);
       var messages = data.messages;
 
       for(var i=0;i<messages.length;i++) {
         var message = messages[i];
-        var body = message.message;
-        console.log(body);
         cb(message);
       }
     });
@@ -37,7 +47,7 @@ var Chat = {
 
   addMessageToPage: function(msgId,sender,receiver,msg) {
     if (!messageIds[msgId]) {
-      $("#chat").chatbox("option", "boxManager").addMsg("John", msg);
+      $("#chat").chatbox("option", "boxManager").addMsg(sender, msg);
       messageIds[msgId] = true;
     }
     else {
@@ -47,16 +57,17 @@ var Chat = {
 };
 
 function setupChat() {
+  loadIds();
   $("#chat").chatbox({id : "chat",
                       title : "Title",
                       user : "can be anything",
                       offset: 200,
                       messageSent: function(id, user, msg){
                            console.logoo("DOM " + id + " just typed in " + msg);
-                           Chat.sendMessage(1,2,msg)
+                           Chat.sendMessage(myId,oppId,msg)
                       }});
 
-  Chat.startMessagePolling(1,2);
+  Chat.startMessagePolling(myId,oppId);
 }
 
 $(function() {
