@@ -19,7 +19,7 @@
 
     <div id="debug"></div>
 
-    <div id="chat" data-p1id="1" data-p2id="2" data-myid="1"></div>
+    <div id="chat" data-p1id="1" data-p2id="2" data-myid="1" data-oppid="2"></div>
   </body>
 </html>
 
