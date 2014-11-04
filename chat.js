@@ -1,13 +1,16 @@
+var pageName = "index.php";
+
 var Chat = {
   sendMessage: function(sender,receiver,msg) {
     console.log("sending message "+msg);
-    $.post("chat.php", {sender: sender, receiver: receiver, message: msg, action: "sendMessage"}, function(data) {
+    $.post(pageName, {sender: sender, receiver: receiver, message: msg, action: "sendMessage"}, function(data) {
       console.log("chat post success");
     });
   },
 
   getMessages: function(sender,receiver,cb) {
-    $.getJSON("chat.php", {sender: sender, receiver: receiver, action: "getMessages"}, function(data) {
+    $.get(pageName, {sender: sender, receiver: receiver, action: "getMessages"}, function(data) {
+      data = JSON.parse(data);
       console.log("getMessages success " + data);
       var messages = data.messages;
 
@@ -28,7 +31,7 @@ var Chat = {
     };
 
     pollOnce();
-    setInterval(pollOnce,2000);
+    setInterval(pollOnce,60000);
   },
 
   addMessageToPage: function(sender,receiver,msg) {
@@ -36,18 +39,13 @@ var Chat = {
   }
 };
 
-// function addMessage(msg) {
-//   $("#debug").append(msg+"<br>");
-//   $("#chat").chatbox("option", "boxManager").addMsg("Mr. Foo", msg);
-// }
-
 function setupChat() {
   $("#chat").chatbox({id : "chat",
                       title : "Title",
                       user : "can be anything",
                       offset: 200,
                       messageSent: function(id, user, msg){
-                           console.log("DOM " + id + " just typed in " + msg);
+                           console.logoo("DOM " + id + " just typed in " + msg);
                            Chat.sendMessage("me","them",msg)
                       }});
 
@@ -56,10 +54,4 @@ function setupChat() {
 
 $(function() {
   setupChat();
-
-  // addMessage("Hello Friend");
-
-  // setTimeout(function() {
-  //   addMessage('More');
-  // },1000);
 });
