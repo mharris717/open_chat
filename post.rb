@@ -25,4 +25,4 @@ uri = URI('http://hearthstoneopen.com/testchat/editor.php')
 res = Net::HTTP.post_form(uri, 'newfile' => body, 'editfile' => 'true')
 puts res.body
 
-File.create "output.php",body
+File.create "examples/combined_output.php",body

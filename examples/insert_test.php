@@ -53,3 +53,18 @@ for ($i = 0; $i < count($a); $i++) {
 }
 
 ?>
+
+i'm 5580
+
+<?php
+
+$query = "SELECT id cnt FROM hs_player where hsname = 'mharris717#1410' limit 5";
+$query_result_handle = mysql_query($query);
+
+for ($count = 0; $row = mysql_fetch_row($query_result_handle); ++$count) {
+  $cnt = $row[0];
+  echo $cnt;
+  echo "<br>";
+}
+
+?>
