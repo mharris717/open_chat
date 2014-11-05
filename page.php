@@ -81,7 +81,12 @@
 
     <div id="debug"></div>
 
-    <div id="chat" data-p1id="1" data-p2id="2" data-myid="1" data-oppid="2"></div>
+    <?php if ($flipUsers) { ?>
+      <div id="chat" data-p1id="2" data-p2id="1" data-myid="2" data-oppid="1"></div>
+    <?php } else { ?>
+      <div id="chat" data-p1id="1" data-p2id="2" data-myid="1" data-oppid="2"></div>
+    <?php } ?>
+
   </body>
 </html>
 
