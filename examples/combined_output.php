@@ -10,17 +10,22 @@ function sendMessage($p1id,$p2id,$sendid,$msg) {
 }
 
 function getMessages($p1id,$p2id) {
-  $query = sprintf("select c.id,c.msg,c.sendid, 
+  $all_messages = sprintf("select c.id,c.msg,c.sendid, 
     p1.reddit p1name, p2.reddit p2name, 
     case when c.p1id = c.sendid then p1.reddit else p2.reddit end sendname
     from hs_oppchat c
     INNER JOIN hs_users p1 on p1.id = c.p1id
     INNER JOIN hs_users p2 on p2.id = c.p2id
     where c.p1id = %s 
-    AND c.p2id = %s 
-    LIMIT 500",
+    AND c.p2id = %s
+    order by c.id desc
+    LIMIT 20",
     mysql_real_escape_string($p1id),
     mysql_real_escape_string($p2id));
+
+  $query = "select all_messages.* 
+  from (" . $all_messages . ") as all_messages 
+  order by all_messages.id asc";
   $query_result_handle = mysql_query($query);
 
   $messages = array();
@@ -57,7 +62,7 @@ else {
       /* style sheets */
       .ui-chatbox {
           position: fixed;
-          bottom:0;
+          top:0;
           padding: 2px;
           background:  #CCCCCC;
       }
@@ -194,17 +199,9 @@ var Chat = {
   },
 
   pollForMessagesOnce: function(p1Id,p2Id) {
-    var numDups = 0;
     Chat.getMessages(p1Id,p2Id,function(message) {
-      var added = Chat.addMessageToPage(message.id,message.sendname,message.msg);
-      if (added) numDups++;
+      Chat.addMessageToPage(message.id,message.sendname,message.msg);
     });
-
-    setTimeout(function() {
-      if (numDups > 0) {
-        myLog("Received "+numDups+" duplicate messages");
-      }
-    },2000);
   },
 
   startMessagePolling: function(p1Id,p2Id) {
@@ -220,10 +217,6 @@ var Chat = {
     if (!messageIds[msgId]) {
       getChatDiv().chatbox("option", "boxManager").addMsg(sender, msg);
       messageIds[msgId] = true;
-      return true;
-    }
-    else {
-      return false;
     }
   },
 

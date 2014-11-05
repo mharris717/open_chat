@@ -73,17 +73,9 @@ var Chat = {
   },
 
   pollForMessagesOnce: function(p1Id,p2Id) {
-    var numDups = 0;
     Chat.getMessages(p1Id,p2Id,function(message) {
-      var added = Chat.addMessageToPage(message.id,message.sendname,message.msg);
-      if (!added) numDups++;
+      Chat.addMessageToPage(message.id,message.sendname,message.msg);
     });
-
-    setTimeout(function() {
-      if (numDups > 0) {
-        myLog("Received "+numDups+" duplicate messages");
-      }
-    },2000);
   },
 
   startMessagePolling: function(p1Id,p2Id) {
@@ -99,10 +91,6 @@ var Chat = {
     if (!messageIds[msgId]) {
       getChatDiv().chatbox("option", "boxManager").addMsg(sender, msg);
       messageIds[msgId] = true;
-      return true;
-    }
-    else {
-      return false;
     }
   },
 
