@@ -53,26 +53,94 @@ else {
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 
-    <link type="text/css" href="http://magma.cs.uiuc.edu/wenpu1/css/jquery.ui.chatbox.css" rel="stylesheet" />
+    <style>
+      /* style sheets */
+      .ui-chatbox {
+          position: fixed;
+          bottom:0;
+          padding: 2px;
+          background:  #CCCCCC;
+      }
+
+      .ui-chatbox-titlebar {
+          padding: 3px;
+          height: 20px;
+          cursor: pointer;
+      }
+
+      .ui-chatbox-content {
+          padding: 0px;
+          margin: 0px;
+          border: 0px;
+      }
+
+      .ui-chatbox-log {
+          padding: 3px;
+          height: 250px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #FFFFFF;
+      }
+
+      .ui-chatbox-input {
+          padding: 3px;
+          border-top: 1px solid grey;
+          overflow: hidden;
+      }
+
+      .ui-chatbox-input-box {
+          margin: 5px;
+          border: 2px solid lightgrey;/* #6699FF */
+          padding: 2px;
+          height: 50px;
+      }
+
+      .ui-chatbox-icon {
+          float: right;
+      }
+
+      .ui-chatbox-input-focus {
+          border-color: #6699FF;
+      }
+
+      .ui-chatbox-msg {
+          margin-top: 10px;
+          float: left;
+          clear: both;
+          /* Source: http://snipplr.com/view/10979/css-cross-browser-word-wrap */
+          white-space: pre-wrap;      /* CSS3 */
+          white-space: -moz-pre-wrap; /* Firefox */
+          white-space: -pre-wrap;     /* Opera <7 */
+          white-space: -o-pre-wrap;   /* Opera 7 */
+          word-wrap: break-word;      /* IE */
+      }
+    </style>
+
     <script type="text/javascript" src="http://magma.cs.uiuc.edu/wenpu1/js/jquery.ui.chatbox.js"></script>
 
     <script type="text/javascript">
       var pageName = "index.php";
 var messageIds = {};
 
+function getChatDiv() {
+  return $("#chat");
+}
+
 var global_p1Id = null;
 var global_p2Id = null;
 var global_myId = null;
 var global_oppId = null
 
+function myLog(str) {
+  console.log(str);
+}
+
 function loadIds() {
-  var chatDiv = $('#chat');
+  var chatDiv = getChatDiv();
   global_p1Id = chatDiv.data('p1id');
   global_p2Id = chatDiv.data('p2id');
   global_myId = chatDiv.data('myid');
   global_oppId = chatDiv.data('oppid');
-
-  console.debug([global_p1Id,global_p2Id,global_myId,global_oppId]);
 }
 
 function safeParseInt(a) {
@@ -99,14 +167,15 @@ function fixIds(a,b) {
 
 var Chat = {
   sendMessage: function(sender,receiver,msg) {
-    console.log("sending message "+msg);
+    myLog("sending message "+msg);
     var ids = fixIds(sender,receiver);
 
     var ops = {p1id: ids.p1id, p2id: ids.p2id, sendid: sender, msg: msg, action: "sendMessage"};
-    console.debug(ops);
+    myLog(ops);
 
     $.post(pageName, ops, function(data) {
-      console.log("chat post success");
+      myLog("chat post success");
+      Chat.pollForMessagesOnce(ids.p1id,ids.p2id);
     });
   },
 
@@ -114,7 +183,7 @@ var Chat = {
     var ids = fixIds(sender,receiver);
     $.get(pageName, {p1id: ids.p1id, p2id: ids.p2id, action: "getMessages"}, function(data) {
       data = JSON.parse(data);
-      console.log("getMessages success " + data);
+      myLog("getMessages success " + data);
       var messages = data.messages;
 
       for(var i=0;i<messages.length;i++) {
@@ -124,11 +193,23 @@ var Chat = {
     });
   },
 
+  pollForMessagesOnce: function(p1Id,p2Id) {
+    var numDups = 0;
+    Chat.getMessages(p1Id,p2Id,function(message) {
+      var added = Chat.addMessageToPage(message.id,message.sendname,message.msg);
+      if (added) numDups++;
+    });
+
+    setTimeout(function() {
+      if (numDups > 0) {
+        myLog("Received "+numDups+" duplicate messages");
+      }
+    },2000);
+  },
+
   startMessagePolling: function(p1Id,p2Id) {
     var pollOnce = function() {
-      Chat.getMessages(p1Id,p2Id,function(message) {
-        Chat.addMessageToPage(message.id,message.sendname,message.msg);
-      })
+      Chat.pollForMessagesOnce(p1Id,p2Id);
     };
 
     pollOnce();
@@ -137,31 +218,38 @@ var Chat = {
 
   addMessageToPage: function(msgId,sender,msg) {
     if (!messageIds[msgId]) {
-      $("#chat").chatbox("option", "boxManager").addMsg(sender, msg);
+      getChatDiv().chatbox("option", "boxManager").addMsg(sender, msg);
       messageIds[msgId] = true;
+      return true;
     }
     else {
-      console.debug("dup message");
+      return false;
     }
+  },
+
+  setup: function(p1Id,p2Id,myId,oppId) {
+    getChatDiv().chatbox({id : "chat",
+                        title : "Chat with Opponent",
+                        user : "can be anything",
+                        offset: 200,
+                        messageSent: function(id, user, msg){
+                             myLog("DOM " + id + " just typed in " + msg);
+                             Chat.sendMessage(myId,oppId,msg)
+                        }});
+
+    Chat.startMessagePolling(p1Id,p2Id);
+  },
+
+  shouldUse: function() {
+    return (getChatDiv().length > 0);
   }
 };
 
-function setupChat(p1Id,p2Id,myId,oppId) {
-  $("#chat").chatbox({id : "chat",
-                      title : "Title",
-                      user : "can be anything",
-                      offset: 200,
-                      messageSent: function(id, user, msg){
-                           console.log("DOM " + id + " just typed in " + msg);
-                           Chat.sendMessage(myId,oppId,msg)
-                      }});
-
-  Chat.startMessagePolling(p1Id,p2Id);
-}
-
 $(function() {
-  loadIds();
-  setupChat(global_p1Id,global_p2Id,global_myId,global_oppId);
+  if (Chat.shouldUse()) {
+    loadIds();
+    Chat.setup(global_p1Id,global_p2Id,global_myId,global_oppId);
+  }
 });
     </script>
 
